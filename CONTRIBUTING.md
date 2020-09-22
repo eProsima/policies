@@ -1,7 +1,7 @@
 # Contribution Guidelines
 
-*Fast DDS* is an open source C++ implementation of the DDS (Data Distribution Service) standard of the OMG (Object
-Management Group). As such, we are always listening to the community for issues, feature improvements and suggestions.
+Most of eProsima's products follow an open source model. As such, we are always listening to the community for issues,
+feature improvements and suggestions.
 
 
 ## Submitting a pull request
@@ -12,7 +12,7 @@ so, you accept to abide to the pull request process followed on this repository,
 
 1. Modify one feature at a time. Avoid pull requests where several features or functionalities are implemented or
    modified at the same time. If you have many contributions, please split them in different pull requests.
-1. Submit your pull requests in separate branches. As for branch names, we normally use `features/*` for adding
+1. Submit your pull requests in separate branches. As for branch names, we normally use `feature/*` for adding
    functionality or refactors, `hotfix/*` for small fixes, and `bugfix/*` for larger parts that do not reflect reality
    and need to be corrected.
 1. Code should be formatted according to our [Code Style Guide](https://github.com/eProsima/cpp-style), we also provide
@@ -26,20 +26,11 @@ an [uncrustify](https://github.com/uncrustify/uncrustify) configuration file to 
    need any help setting up, please let us know by opening an issue. We will be happy to help you and to improve each
    repository's instructions.
 1. Be prepared to receive criticism, and potentially tons of change requests. Please do not take criticism as personal,
-   we really appreciate your contributing effort. To be merged into the master branch o the releases, a pull request
+   we really appreciate your contributing effort. To be merged into the master branch or the releases, a pull request
    must be approved by at least one reviewer with write access.
-1. Changes of the kind `feature/*` must be accompanied by a pull request to the [Fast-DDS
-   Docs](https://github.com/eProsima/Fast-RTPS-docs) documenting the added functionality.
+1. Changes of the kind `feature/*` must be accompanied by a pull request to the appropriate documentation repo
+   documenting the added functionality.
 1. Mind that [LICENSE](LICENSE) applies to all contributions made to this repository.
-
-## Coverage and Performance Policies
-
-Coverage tests and performance tests are run in CI on the nightly builds of the master branch. New changes should never
-lower the coverage result of the software. 
-
-If at any time the master branch exhibits a performance regression the priority is to restore to the last working
-version, until the root cause has been identified an proceeded to be fixed. 
-
 
 ## Licensing
 
