@@ -8,11 +8,18 @@ on:
 jobs:
   ensure-triage-team:
     runs-on: ubuntu-latest
-
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.SECURITY_ADVISORY_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SECURITY_ADVISORY_APP_PRIVATE_KEY }}
+          owner: eProsima
+    
       - name: Ensure security team has access to open advisories
         env:
-          GH_TOKEN: ${{ secrets.SECURITY_ADVISORY_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ORG: eProsima
           TEAM: team
         shell: bash
