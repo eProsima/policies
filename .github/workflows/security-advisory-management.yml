@@ -1,0 +1,90 @@
+name: Security advisory management
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  ensure-triage-team:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ensure security team has access to open advisories
+        env:
+          GH_TOKEN: ${{ secrets.SECURITY_ADVISORY_TOKEN }}
+          ORG: eProsima
+          TEAM: team
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+
+          for state in triage draft; do
+            response="${tmpdir}/${state}.json"
+
+            if ! gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              --paginate \
+              "/orgs/${ORG}/security-advisories?state=${state}&per_page=100" \
+              --slurp \
+              > "${response}" 2>/dev/null; then
+              echo "::error::Unable to retrieve organization security advisories."
+              exit 1
+            fi
+
+            jq -c \
+              --arg team "${TEAM}" \
+              '
+                .[]
+                | .[]
+                | select(
+                    ([.collaborating_teams[]?.slug] | index($team)) == null
+                  )
+                | {
+                    ghsa_id,
+                    repo: (
+                      .url
+                      | capture(
+                          "/repos/[^/]+/(?<repo>[^/]+)/security-advisories/"
+                        )
+                      | .repo
+                    ),
+                    teams: (
+                      [.collaborating_teams[]?.slug, $team]
+                      | unique
+                    )
+                  }
+              ' "${response}" |
+            while IFS= read -r advisory; do
+              ghsa_id="$(jq -r '.ghsa_id' <<< "${advisory}")"
+              repo="$(jq -r '.repo' <<< "${advisory}")"
+              teams="$(jq -c '.teams' <<< "${advisory}")"
+
+              echo "::add-mask::${ghsa_id}"
+              echo "::add-mask::${repo}"
+
+              payload="${tmpdir}/payload.json"
+
+              jq -n \
+                --argjson collaborating_teams "${teams}" \
+                '{collaborating_teams: $collaborating_teams}' \
+                > "${payload}"
+
+              if ! gh api \
+                --method PATCH \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "/repos/${ORG}/${repo}/security-advisories/${ghsa_id}" \
+                --input "${payload}" \
+                >/dev/null 2>/dev/null; then
+                echo "::error::Unable to update a security advisory."
+                exit 1
+              fi
+            done
+          done
+
+          echo "Security advisory collaborator synchronization completed."
